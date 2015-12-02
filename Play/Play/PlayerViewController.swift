@@ -128,7 +128,23 @@ class PlayerViewController: UIViewController {
         let path = NSBundle.mainBundle().pathForResource("Info", ofType: "plist")
         let clientID = NSDictionary(contentsOfFile: path!)?.valueForKey("client_id") as! String
         let track = tracks[currentIndex]
-        let url = NSURL(string: "https://api.soundcloud.com/tracks/\(track.id)/stream?client_id=\(clientID)")!
+        if player.currentItem == nil {
+            let url = NSURL(string: "https://api.soundcloud.com/tracks/\(track.id)/stream?client_id=\(clientID)")!
+            let song = AVPlayerItem(URL: url)
+            player.replaceCurrentItemWithPlayerItem(song)
+        }
+        
+        
+        if player.rate == 0 {
+            print(player.currentItem?.status)
+            if player.currentItem?.status == .ReadyToPlay {
+                player.play()
+                sender.selected = true
+            }
+        } else {
+            player.pause()
+            sender.selected = false
+        }
         // FILL ME IN
     
     }
@@ -140,6 +156,12 @@ class PlayerViewController: UIViewController {
      * Remember to update the currentIndex
      */
     func nextTrackTapped(sender: UIButton) {
+        if currentIndex < tracks.count {
+            currentIndex = currentIndex + 1
+            player.replaceCurrentItemWithPlayerItem(nil)
+            playPauseButton.selected = false
+            loadTrackElements()
+        }
     
     }
 
@@ -154,7 +176,16 @@ class PlayerViewController: UIViewController {
      */
 
     func previousTrackTapped(sender: UIButton) {
-    
+        if player.currentTime() > CMTime(seconds: 3.0, preferredTimescale: 1) {
+            player.seekToTime(CMTime(seconds: 0.0, preferredTimescale: 1))
+        } else {
+            if currentIndex > 0 {
+                currentIndex = currentIndex - 1
+                player.replaceCurrentItemWithPlayerItem(nil)
+                playPauseButton.selected = false
+                loadTrackElements()
+            }
+        }
     }
     
     
